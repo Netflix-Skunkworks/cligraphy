@@ -1,0 +1,4 @@
+pre-commit.d/ascii-filename
+pre-commit.d/trailing-whitespace
+pre-commit.d/python-no-tabs
+pre-commit.d/python-docstrings
