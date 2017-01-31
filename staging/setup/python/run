@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+source ${CLIGRAPHY_REPO_PATH}/setup/lib_setup.sh
+oc_setup_init_app python
+
+#
+# System python needs pip, virtualenv
+# -----------------------------------
+#
+
+# Escape any virtual env
+unset VIRTUAL_ENV
+unset PYTHON_HOME
+
+declare -r oldpath=$PATH
+export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/git/bin:
+
+pip_location=$(which pip || exit 0)
+
+# Install pip if missing
+if ! test -x "${pip_location}"; then
+    oc_info "Installing pip in python system path"
+    oc_sudo /usr/bin/env python2.7 ${CLIGRAPHY_SETUP_APP_PATH}/get-pip
+    pip_location=$(which pip)
+else
+    if test $(oc_capture_ignore_fail ${pip_location} --version | grep -c 'python 2.7') -eq 0; then
+        oc_err "${pip_location} doesn't seem to be using python 2.7, which is required"
+    fi
+fi
+
+${pip_location} freeze > system.installed.txt
+oc_run /usr/bin/env python2.7 ${CLIGRAPHY_SETUP_APP_PATH}/../missing.py system.installed.txt ${CLIGRAPHY_SETUP_APP_PATH}/system.txt system.todo.txt
+
+if test -s system.todo.txt; then
+    oc_sudo ${pip_location} install --upgrade -r system.todo.txt
+fi
+
+PATH=${oldpath}
+
+
+#
+# Create and initialize our virtualenv
+# -------------------------------------------
+#
+
+if ! test -d ~/.cligraphy/python-envs/oc; then
+    oc_info "Creating virtualenv ~/.cligraphy/python-envs/oc"
+    oc_run virtualenv ~/.cligraphy/python-envs/oc
+fi
+
+set +u
+source ~/.cligraphy/python-envs/oc/bin/activate
+
+
+#
+# Install oc tools
+# -------------------------------------------
+#
+
+# Make a 1st pass with pip install -r so all dependencies, including things we might install via git (-e git+ssh://...) which are
+# not fully understood by python setup.py develop (eg. setup will complain if they're missing, but won't be able to install them)
+oc_run_ignore_fail cd ${CLIGRAPHY_SETUP_APP_PATH}"/../.." && pip install -r requirements.txt
+
+# Now run develop
+oc_run cd ${CLIGRAPHY_SETUP_APP_PATH}"/../.." && python setup.py develop
+
+# pytz is slow to load - unzip it (http://stackoverflow.com/questions/20500910/first-call-to-pytz-timezone-is-slow-in-virtualenv)
+oc_run_ignore_fail pip unzip pytz
+
+set +u
+deactivate
+
+oc_success

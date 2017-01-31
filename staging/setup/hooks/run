@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+#
+# Run appropriate git hooks based on a .hooks at the top of the repository
+#
+
+export CLIGRAPHY_LOG=/dev/stdout
+
+source ${CLIGRAPHY_REPO_PATH}/setup/lib_setup.sh
+oc_setup_init_app oc-git-hook-run
+
+HOOK_NAME=$(basename ${0})
+REPO_PATH=${CLIGRAPHY_PREV_PWD}
+
+FRAG_CONF=${REPO_PATH}/.hooks
+if test -e ${REPO_PATH}/.hooks; then
+    IFS=$'\n' GLOBIGNORE='*' : ; FRAGMENTS_ENABLED=($(<${FRAG_CONF}))
+else
+    declare -a FRAGMENTS_ENABLED=(none)
+fi
+
+cd ${REPO_PATH}
+oc_debug "Running [${HOOK_NAME}] hook fragments in repo [${REPO_PATH}]:  ${FRAGMENTS_ENABLED[*]}"
+
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+    AGAINST=HEAD
+else
+    # Initial commit: diff against an empty tree object
+    AGAINST=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+fi
+
+for frag in ${FRAGMENTS_ENABLED[@]}; do
+    case ${frag} in ${HOOK_NAME}*)
+        frag_file=${CLIGRAPHY_REPO_PATH}/setup/hooks/${frag}
+        if test -e ${frag_file}; then
+            oc_info "Running ${frag}"
+            source ${frag_file}
+        else
+            oc_err "Could not find hook fragment ${frag} defined in ${FRAG_CONF}"
+        fi
+    esac
+done
+
+oc_success

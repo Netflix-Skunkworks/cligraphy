@@ -1,0 +1,5 @@
+#
+# Print a nice message after a commit is made (example hook fragment)
+#
+
+echo "YAY FOR COMMITS!"

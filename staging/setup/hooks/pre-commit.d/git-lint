@@ -1,0 +1,5 @@
+#
+# Runs git-lint
+#
+
+git lint

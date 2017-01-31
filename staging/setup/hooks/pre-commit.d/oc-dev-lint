@@ -1,0 +1,4 @@
+#
+# Runs oc dev lint
+#
+oc dev lint

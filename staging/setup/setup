@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#
+
+if test "$1" = "-h" -o "$1" = "--help" -o "$1" = "help"; then
+    echo "setup [fragment...]: sets up environment for the oc tool suite"
+    exit 0
+elif test -z "$1"; then
+    PARTS=(
+        base
+        python
+        homebrew
+        apt
+        yum
+        pkg
+    )
+else
+    declare -a PARTS=("$@")
+fi
+
+function failed {
+    echo FAILED
+    exit 1
+}
+
+if test -z "$CLIGRAPHY_REPO_PATH"; then
+    echo "CLIGRAPHY_REPO_PATH environmental variable not set"
+    failed
+fi
+
+source "${CLIGRAPHY_REPO_PATH}/setup/lib_setup.sh"
+oc_setup_init
+oc_no_root
+
+export CLIGRAPHY_LOG
+for ((i = 0; i < ${#PARTS[@]}; i++)); do
+    PART=${PARTS[$i]}
+    /bin/echo -n "Running ${PART} ... "
+    oc_run ${CLIGRAPHY_REPO_PATH}/setup/${PARTS[$i]}/run && echo OK || failed ${PART}
+done

@@ -1,0 +1,39 @@
+#
+# cligraphy tool configuration file
+# ----------------------------------------------------------
+#
+# This is the default, shared, global configuration for your end-user tool based on cligraphy.
+# Most of these are *required* (as in, the code does not provide defaults)
+# Users should put overrides in ~/.yourtool/yourtool.yaml
+#
+
+commands:
+    yourtool_module.commands: # Our core commands live here
+
+repos:
+    git_proto: ssh
+    git_root: '%cfg.repos.git_proto%://git@repos.domain.net'
+    list:
+
+report:
+    enabled: false
+    server: https://cligraphy-backend.domain.net
+    max_output_size: 8192
+
+ssh:
+    proxy:
+        enabled: true
+        multiplexing: true
+        host: bastion.domain.net
+    config: "%cfg.tool.repo_path%/conf/ssh_config"
+    args: "-x"
+    multi:
+        command: csshX {hosts}
+
+ipmi:
+    ipmitool: "/usr/local/bin/ipmitool"
+    user: ipmiusername
+    escapechar: '^'
+
+refresh:
+    tips: true

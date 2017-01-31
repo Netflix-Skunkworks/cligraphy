@@ -1,0 +1,5 @@
+#
+# Adds a comment to commit messages prior to editing (example fragment)
+#
+
+echo "# Reminder: include JIRA ticket numbers in your commit, if any!" >> $1

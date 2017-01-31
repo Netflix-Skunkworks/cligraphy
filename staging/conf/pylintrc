@@ -1,0 +1,43 @@
+#
+# example pylintrc
+#
+
+# add linter plugins to your tool, and load them here
+#[MASTER]
+#load-plugins=yourtool.lint
+
+[BASIC]
+variable-rgx=[a-z_][a-z0-9_]{1,30}$
+function-rgx=[a-z_][a-z0-9_]{1,36}$
+method-rgx=[a-z_][a-z0-9_]{1,36}$
+argument-rgx=[a-z_][a-z0-9_]{1,30}$
+no-docstring-rgx=__.*__|main|configure|Test.*
+
+[FORMAT]
+max-line-length=180
+indent-string='    '
+
+[MESSAGES CONTROL]
+disable=locally-disabled,no-self-use,too-few-public-methods,too-many-public-methods,too-many-return-statements,too-many-arguments,abstract-class-not-used,abstract-class-little-used,star-args,similarities,bad-whitespace,superfluous-parens,import-error,fixme,docstring-period,docstring-args,docstring-oneliner
+
+[IMPORTS]
+deprecated-modules=regsub,TERMIOS,Bastion,rexec
+
+[REPORTS]
+output-format=colorized
+reports=no
+msg-template={abspath}:{line}:{column} {obj}: {msg} ({symbol})
+
+[DESIGN]
+max-attributes = 12
+max-locals = 18
+max-branchs = 15
+max-statements = 60
+max-parents = 10
+
+[MISCELLANEOUS]
+notes=TODO,FIXME,XXX
+
+[TYPECHECK]
+ignored-classes=EasyDict,AttrDict
+generated-members=next,json

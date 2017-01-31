@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Installs base oc tool things like directories, bash profile
+
+source ${CLIGRAPHY_REPO_PATH}/setup/lib_setup.sh
+oc_setup_init_app base
+
+mkdir -p ~/.cligraphy
+mkdir -p ~/.cligraphy/backup
+mkdir -p ~/.cligraphy/python-envs
+mkdir -p ~/.cligraphy/run
+
+if ! test -a ~/.bash_profile; then
+    echo "export CLIGRAPHY_REPO_PATH=${CLIGRAPHY_REPO_PATH}" > ~/.bash_profile
+    echo 'source ${CLIGRAPHY_REPO_PATH}/shell/oc_bash_profile.sh' >> ~/.bash_profile
+else
+    if test $(oc_capture_ignore_fail grep -c oc_bash_profile ~/.bash_profile) -eq 0; then
+
+        # Build new bash profile
+        set +e
+
+        cat ~/.bash_profile | grep '#!' > bash_profile
+        echo "export CLIGRAPHY_REPO_PATH=${CLIGRAPHY_REPO_PATH}" >> bash_profile
+        echo 'source ${CLIGRAPHY_REPO_PATH}/shell/oc_bash_profile.sh' >> bash_profile
+        cat ~/.bash_profile | grep -v '#!' >> bash_profile
+
+        set -e
+
+        cp -a ~/.bash_profile ~/.cligraphy/backup/bash_profile
+        cp bash_profile ~/.bash_profile
+    fi
+fi
+
+oc_success

@@ -1,0 +1,12 @@
+#
+# Rejects commits that add triple-simple-quotes to python files
+#
+
+set +e
+git diff-index -u --cached ${AGAINST} -- '*.py' | grep -C 20 -e "^\+.*'''"
+status=$?
+set -e
+
+if test $status -eq 0; then
+    oc_err "For triple-quoted strings, always use double quote characters to be consistent with the docstring convention in PEP 257."
+fi

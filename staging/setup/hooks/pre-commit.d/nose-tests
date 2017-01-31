@@ -1,0 +1,48 @@
+git stash -q --keep-index
+
+set +e
+
+# cache results of git diff
+git_diff=$(git diff --cached --name-only)
+
+# run any tests available in the same directories as our changes
+modified_dirs=$(for i in $(echo "$git_diff" | grep -o '.*/' | sort | uniq); do if test -d $i; then echo $i; fi; done)
+if ! test -z "${modified_dirs}"; then
+    echo -n "Executing any unit tests in "
+    echo ${modified_dirs}
+    nosetests -a '!slow' ${modified_dirs}
+    status=$?
+else
+    # no directories with changes, maybe there's python code in python/ ?
+    if test -d python; then
+        echo "Executing any unit tests in python/"
+        nosetests -a '!slow' python/
+        status=$?
+
+    else
+        # fallback - just run nosetests and hope something happens
+        echo "Executing any unit tests in current directory"
+        nosetests -a '!slow'
+        status=$?
+    fi
+fi
+
+# only run additional tests if we didn't fail previously
+if test $status -eq 0; then
+    # additionally run tests (if any) in the mirroring tests/ directory tree
+    modified_dirs=$(for i in $(echo "$git_diff" | grep -o '/.*/' | sort | uniq); do if test -d "tests$i"; then echo "tests$i"; fi; done)
+    if ! test -z "${modified_dirs}"; then
+        echo -n "Executing any unit tests in "
+        echo ${modified_dirs}
+        nosetests -a '!slow' ${modified_dirs}
+        status=$?
+    fi
+fi
+
+set -e
+
+git stash pop -q
+
+if test $status -ne 0; then
+    oc_err "Unit tests failed"
+fi

@@ -1,0 +1,12 @@
+#
+# Rejects commits that add whitespace errors
+#
+
+set +e
+git diff-index --check --cached ${AGAINST} --
+status=$?
+set -e
+
+if test $status -ne 0; then
+    oc_err "Commit would introduce whitespace errors"
+fi

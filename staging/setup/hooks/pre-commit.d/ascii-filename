@@ -1,0 +1,22 @@
+#
+# Rejects filenames that are not fully ASCII
+#
+
+# Cross platform projects tend to avoid non-ASCII filenames; prevent
+# them from being added to the repository. We exploit the fact that the
+# printable range starts at the space character and ends with tilde.
+
+# Note that the use of brackets around a tr range is ok here, (it's
+# even required, for portability to Solaris 10's /usr/bin/tr), since
+# the square bracket bytes happen to fall in the designated range.
+
+if test $(git diff --cached --name-only --diff-filter=A -z ${AGAINST} |
+      LC_ALL=C tr -d '[ -~]\0' | wc -c | tr -d '[[:space:]]' ) != 0
+then
+    cat <<\EOF
+Error: Attempt to add a non-ASCII file name.
+This can cause problems if you want to work with people on other platforms.
+To be portable it is advisable to rename the file.
+EOF
+    exit 1
+fi

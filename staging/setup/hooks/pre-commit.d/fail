@@ -1,0 +1,6 @@
+#
+# Fails a commit (example fragment)
+#
+
+oc_err "The fail hook fragment is listed in .hooks, failing commit"
+exit 1

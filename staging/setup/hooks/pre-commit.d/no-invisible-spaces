@@ -1,0 +1,12 @@
+#
+# Rejects commits that add invisible characters to source code
+#
+
+set +e
+git diff-index -u --cached ${AGAINST} -- '*.py' '*.java' '*.groovy' '*.sql' | grep --color -a -C 1 -E '\x{200B}'
+status=$?
+set -e
+
+if test $status -eq 0; then
+    oc_err "Non-printable characters like non-breaking space are not allowed in source code files"
+fi

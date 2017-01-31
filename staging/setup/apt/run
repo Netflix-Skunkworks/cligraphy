@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+source ${CLIGRAPHY_REPO_PATH}/setup/lib_setup.sh
+oc_setup_init_app apt
+
+if test $(uname) = 'Linux'; then
+
+    if test $(lsb_release  --id -s) = 'Ubuntu'; then
+
+        export DEBIAN_FRONTEND=noninteractive
+
+        dpkg --get-selections | grep -v deinstall | cut -f1 | cut -d: -f1 > installed.txt
+        ~/.cligraphy/python-envs/oc/bin/python ${CLIGRAPHY_REPO_PATH}/setup/packages.py ${CLIGRAPHY_SETUP_APP_PATH}/../packages.yaml > wanted.txt
+
+        oc_run /usr/bin/env python2.7 ${CLIGRAPHY_SETUP_APP_PATH}/../missing.py installed.txt wanted.txt todo.txt
+
+        if test -f todo.txt; then
+
+            oc_run sudo apt-get update
+            # FIXME - wrong python interpreter if you workon another project and run oc setup
+            oc_run sudo apt-get -q -y install $(cat todo.txt)
+        fi
+
+    fi
+
+fi
+
+oc_success

@@ -1,0 +1,12 @@
+#
+# Checks for bad language in a commit message (example hook fragment)
+#
+
+set +e
+cat $1 | grep -i fuck 1>/dev/null 2>&1
+status=$?
+set -e
+
+if test $status -eq 0; then
+    oc_err "Commit message contains coarse language"
+fi

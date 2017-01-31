@@ -1,0 +1,4 @@
+Host *
+   SendEnv LANG LC_*
+   EscapeChar none
+   Protocol 2

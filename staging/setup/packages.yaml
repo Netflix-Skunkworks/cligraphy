@@ -1,0 +1,57 @@
+# Package list for oc tools
+# If a given definition has no sub-nodes, that name is used as the package name everywhere (shortcut for packages that have the same name
+# on ubuntu and brew.) Subnodes indicate overrides for certain systems
+
+all:
+    coreutils:
+    git:
+    glib:
+        ubuntu: libglib2.0-dev
+    ipcalc:
+    iperf:
+    ipmitool:
+    jq:
+    libffi:
+        ubuntu: libffi-dev
+        fedora: libffi-devel
+    mercurial:
+    most:
+    mtr:
+    mysql:
+        ubuntu: libmysqlclient-dev # really we only need the client lib
+        fedora: mysql-libs # best effort googling, not tested
+    node:
+    nmap:
+    pcre:
+        ubuntu:
+        - libpcre3
+        - pcregrep
+    pkg-config:
+        fedora: pkgconfig
+    postgresql:
+        ubuntu:
+            - libpq-dev
+            - postgresql-client
+        fedora: postgresql-libs # best effort googling, not tested
+        freebsd: postgresql-libpqxx
+    redis:
+        ubuntu: redis-server
+    rpl:
+    tmux:
+    watch:
+        ubuntu: procps
+        fedora: procps-ng
+        freebsd: cmdwatch
+    wget:
+    xz:
+        ubuntu: xz-utils
+        freebsd: # installed by default
+    conserver:
+        fedora: conserver-client
+        ubuntu: conserver-client
+darwin:
+    csshx:
+ubuntu:
+    smem:
+    expect:
+    libjpeg-dev:
