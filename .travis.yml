@@ -1,0 +1,28 @@
+language: python
+matrix:
+  include:
+  - python: '2.7'
+cache:
+  directories:
+  - .pip_download_cache
+env:
+  global:
+  - PIP_DOWNLOAD_CACHE=".pip_download_cache"
+before_script:
+- cd src/python
+- pip install -r requirements.txt
+- python setup.py develop
+script:
+- nosetests
+notifications:
+  email:
+  - stefan@kentik.com
+  - achu@netflix.com
+deploy:
+  provider: pypi
+  user: cligraphy
+  password:
+    secure: P64g14T8OzIhy//ljHi0fe0fls2iYJHutaOwAUWmug3sF3frhuM/tk+ksN2Bk28CK2VcIVO0b+a62IlgwE45AAnUk8xMRStxn0ABIXURA9Dm5f2LvDfjfEUk7AeUb3TdgTqsWbqzqInvA4Veln8Ez7H4hlhnLrcUSpJKRv/p4BlLcP/1mADBZboEDPKGp9BtySKvuNUzp1zqqBXPPKp1NBNBZqtjbRJVZERkU6TnRlhXHSK9/kC3Y84ta6HjClAPhFAbyialRLi+d7CAa65w/UEeEzPeaHSpMg3hRIfTrGOEdoz2bRWBKS4yTXA3QZ+aNi0efYF9+0T+wB9SCGHkLZKxeOOO7UIt6Bq8ubwZIX8tEAMg8SZC+Uhyhz7Uen/2S/gRBvjKvucNCjuZ8Zss0bj/H1/FCs05RZhorCygIwtWskqZtMXO26lz12ZNYSsp7/0a9e9T2uN2Z3rv/H5RheY/+XTri+26Qt7l6JI46qj1EO6u2FDYJlVvR4jp96mkjVCb2ZfWJlA4DbQ2q0AMmkp9mPCHxDeGlByQOcF8A/kQiyQKWMwG6Ush/XZT7p2HLXYBSlKuS75B0EHfS5WA3wH6sEmahGiTX9WJMFMTwMHgV1SB/luwXuXJQce2HI7m++BANgr7X+RNRJqZbB8b1D/7Ji4LdOEk6FDAEYYDBy4=
+  on:
+    tags: true
+  distributions: sdist bdist_wheel
