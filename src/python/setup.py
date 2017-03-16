@@ -7,7 +7,7 @@ from pip.download import PipSession
 
 setup(
     name = 'cligraphy',
-    version = '0.0.1',
+    version = '0.0.2',
     description = 'Cligraphy Command line tools',
     long_description = 'Cligraphy Command line tools',
     author = 'Netflix, Inc.',
