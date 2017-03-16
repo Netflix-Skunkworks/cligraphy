@@ -18,12 +18,3 @@ notifications:
   email:
   - stefan@kentik.com
   - achu@netflix.com
-deploy:
-  provider: pypi
-  user: cligraphy
-  password:
-    secure: YitePEoxRulntDZRszB6MtNogCo7If6NsQEyGhS7oaQfiBHgQ5AlHx1q5yvRT8f7kE444C6A0Zz6GxG0x6VStczE/1Hsyk3CpVZwCZ72WKtKYKX+96t6ijmZpVLFKw78Uls7QUPxJhSMrtrnD7KX8Abv7veJOQcXX7SM2Gvv//yq7WoTlbCVEX9keidawBnT8K5tWmxMX++SxS3vhzaVvYSdT4eplUMRmxHRyCKSaRkdr2NbfKkjU3gLMNIEUb3QI5Cll44uQ2GyptB63wvVbb7gW9uzE/UTWM2x6Z8hlfFEmifk3K8q0urUrwHaY+Qc3vw5+/xDHN4d1cvBXVolW2v22+CPOfehMVCSYCpdWqXK9YXoexmnsDrwawIunAwp9qhVlQOUt+zoJ/j5C/GMFKL3ikmTaAhgx/f656a9+RWiXQZOexxBbUIxihfQ/2Presh3OICXGdHXGIJhqcB/drTBz9hB1RE69zrwQbDQNHuhIiiawkH3+tUg7UylPyT5pHzRcv+8ZaRh6Y1b5m46e9/c+9WViVVh0KXcSZoV+DnRd7HDfTqzS+yzE6Cg/S4x8hoiJ16LEiqrexqY51l5a1MZMsKmRcAusFLL+v8OMPZFgYG1TmiZf4Hr0SmqSnRE8vlt2z+oztQoxzf/slKM5oOoXOdUAgApTWucqfc4ToM=
-  on:
-    tags: true
-  distributions: sdist bdist_wheel
-  skip_upload_docs: true
