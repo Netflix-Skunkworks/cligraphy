@@ -14,6 +14,17 @@ import os
 import sys
 
 
+#  new log level for, you guessed it, dryrun logging.
+#  See: http://stackoverflow.com/a/13638084
+DRYRUN_num = 15
+DRYRUN_name = 'DRYRUN'
+
+
+def _dryrun(self, message, *args, **kws):
+    if self.isEnabledFor(DRYRUN_num):
+        self._log(DRYRUN_num, message, args, **kws)
+
+
 class JsonHandler(logging.Handler):
 
     def __init__(self, destination, *args, **kwargs):
@@ -121,6 +132,8 @@ def _get_dict_config():
     }
 
     if os.isatty(sys.stderr.fileno()) and try_import('colorlog')[0]:
+        import colorlog
+        colorlog.default_log_colors.update({DRYRUN_name: 'blue'})
         dict_config['formatters']['colors'] = {
             '()': 'colorlog.ColoredFormatter',
             'datefmt': '%Y-%m-%d %H:%M:%S',
@@ -133,6 +146,8 @@ def _get_dict_config():
 
 def setup_logging(level=None):
     """Configure logging"""
+    logging.addLevelName(DRYRUN_num, DRYRUN_name)
+    logging.Logger.dryrun = _dryrun
     try:
         logging.config.dictConfig(_get_dict_config())
         logging.captureWarnings(True)
