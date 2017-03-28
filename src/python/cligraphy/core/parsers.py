@@ -200,6 +200,9 @@ class SmartCommandMapParser(BaseParser):
         try:
             parsed_args, _ = self.parse_known_args(args)
         except ParserError as pe:
+            # if we get 'too few arguments here', user is referencing a command group, and we shouldn't fuzzy match
+            if pe.message == 'too few arguments':
+                pe.report()
             logging.debug('Could not parse command line args [%s], attempting fuzzy matching', args)
             fixed_args, matches = attempt_fuzzy_matching(args, self.flat_map.keys())
             if fixed_args:
