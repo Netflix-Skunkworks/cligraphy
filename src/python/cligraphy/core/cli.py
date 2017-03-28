@@ -185,7 +185,7 @@ class Cligraph(object):
             logging.debug('Autodiscover enabled')
             autodiscover = True
 
-        parser = SmartCommandMapParser(prog="oc",
+        parser = SmartCommandMapParser(prog=self.tool_shortname,
                                        description="Cligraphy command line tools",
                                        formatter_class=CustomDescriptionFormatter)
 
