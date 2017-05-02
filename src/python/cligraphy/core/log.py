@@ -5,12 +5,17 @@
 
 from cligraphy.core.util import try_import
 
+import colorlog
+import traceback
+import pygments.lexers, pygments.styles
+
 from remember import memoize
 
 import json
 import logging
 import logging.config
 import os
+import random
 import sys
 
 
@@ -101,6 +106,53 @@ class JsonHandler(logging.Handler):
             self.handleError(record)
 
 
+class CligraphyColoredFormatter(colorlog.ColoredFormatter):
+    style = 'rrt' # vim? native?
+
+    def __init__(self, *args, **kwargs):
+        super(CligraphyColoredFormatter, self).__init__(*args, **kwargs)
+
+    def _shave_exception(self, exc_info):
+        tb = exc_info[2]
+        for i in range(3):
+            if tb.tb_next:
+                tb = tb.tb_next
+        return exc_info[0], exc_info[1], tb
+
+    def _get_term_color_support(self):
+        try:
+            import curses
+        except ImportError:
+            # Probably Windows, which doesn't have great curses support
+            return 16
+        curses.setupterm()
+        return curses.tigetnum('colors')
+
+    @property
+    def formatter(self):
+        colors = self._get_term_color_support()
+        if colors == 256:
+            fmt_options = {'style': self.style}
+        elif self.style in ('light', 'dark'):
+            fmt_options = {'bg': self.style}
+        else:
+            fmt_options = {'bg': 'dark'}
+        from pygments.formatters import get_formatter_by_name
+        import pygments.util
+        fmt_alias = 'terminal256' if colors == 256 else 'terminal'
+        try:
+            return get_formatter_by_name(fmt_alias, **fmt_options)
+        except pygments.util.ClassNotFound as ex:
+            return get_formatter_by_name(fmt_alias)
+
+    def formatException(self, exc_info):
+        exc_info = self._shave_exception(exc_info)
+
+        tb_text = "".join(traceback.format_exception(*exc_info))
+        lexer = pygments.lexers.get_lexer_by_name("pytb", stripall=True)
+        return '\n'.join('\t| ' + x for x in pygments.highlight(tb_text, lexer, self.formatter).split('\n') if x)
+
+
 def silence_verbose_loggers():
     logging.getLogger('requests.packages.urllib3.connectionpool').setLevel(logging.WARN)
 
@@ -131,11 +183,11 @@ def _get_dict_config():
         }
     }
 
-    if os.isatty(sys.stderr.fileno()) and try_import('colorlog')[0]:
+    if os.isatty(sys.stderr.fileno()):
         import colorlog
         colorlog.default_log_colors.update({DRYRUN_name: 'blue'})
         dict_config['formatters']['colors'] = {
-            '()': 'colorlog.ColoredFormatter',
+            '()': 'cligraphy.core.log.CligraphyColoredFormatter',
             'datefmt': '%Y-%m-%d %H:%M:%S',
             'format': "%(log_color)s%(asctime)s %(levelname)-8s%(reset)s %(purple)s%(module)s/%(funcName)s%(reset)s %(message)s"
         }

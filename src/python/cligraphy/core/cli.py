@@ -159,8 +159,8 @@ class Cligraph(object):
             ret = exc.code
         except ParserError as pe:
             pe.report()
-        except Exception:  # pylint:disable=broad-except
-            logging.exception('Top level exception in command process')
+        except Exception as e:  # pylint:disable=broad-except
+            logging.exception('Command exception: %s' % e)
         finally:
             sys.exit(ret)
 
