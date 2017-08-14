@@ -26,7 +26,7 @@ def retry(retry_count, exceptions, log_message, retry_sleep=0, backoff=1, maxdel
             try:
                 return f(*args, **kwargs)
             except (exceptions) as e:
-                logging.info('Failed to %s. Attempt: %s/%s', log_message, retry_count + 1 - _tries, retry_count)
+                logging.debug('Failed to %s. Attempt: %s/%s', log_message, retry_count + 1 - _tries, retry_count)
                 _tries -= 1
                 if _tries == 0:
                     logging.error('Failed to %s with %s attempts', log_message, retry_count)
