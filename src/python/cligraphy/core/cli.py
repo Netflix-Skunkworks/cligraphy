@@ -194,7 +194,8 @@ class Cligraph(object):
         parser.add_argument('--version', action=_VersionAction, nargs=0, dest="_version")
         parser.add_argument("--debug", help="enable debuging output", dest="_level", action="store_const", const=logging.DEBUG)
         parser.add_argument("--pdb", help="run pdb on exceptions", dest="_pdb", action="store_true")
-        parser.add_argument("--no-capture", help="disable input/output capture", dest="_capture", action="store_false", default=True)
+        parser.add_argument("--no-capture", help="(DEPRECATED) disable input/output capture", dest="_capture_deprecated", action="store_false", default=True) # DEPRECATED; left behind to avoid breaking existing references
+        parser.add_argument("--enable-capture", help="enable input/output capture", dest="_capture", action="store_true", default=False)
         parser.add_argument("--no-reporting", help="disable reporting", dest="_reporting", action="store_false", default=True)
         parser.add_argument("--profile", help="enable profiling", dest="_profile", action="store_true", default=False)
         parser.add_argument("--autodiscover", help="re-discover commands and refresh cache (default: read cached commands list)", dest="_autodiscover", action="store_true")
