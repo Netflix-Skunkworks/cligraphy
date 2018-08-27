@@ -16,6 +16,5 @@ setup(
     setup_requires=[
         'setupmeta'
     ],
-    package_dir={'': 'src/python'},
 
 )

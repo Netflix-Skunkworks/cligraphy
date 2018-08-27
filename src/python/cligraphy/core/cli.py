@@ -93,7 +93,7 @@ class Cligraph(object):
         """
         Setups up the reporter using ``self.reporter_cls`` class variable.
         NOTE: A reporter must be configured for Cligraphy to operate properly.
-        If reporting is disabled via the config, a `NoopReporter` is used instead.
+        If reporting is disabled via the config, a :class:`NoopReporter` is used instead.
 
         :param args: The parsed arguments for the command
         :type args: :class:`argparse.Namespace`
@@ -341,6 +341,6 @@ class Cligraph(object):
             except SystemExit as exc:
                 status = exc.code
 
-        self.after_command_finish(self, args, recorder, status)
+        self.after_command_finish(args, recorder, status)
 
         return status
