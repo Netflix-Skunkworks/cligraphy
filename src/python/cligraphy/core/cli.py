@@ -8,6 +8,7 @@
 from cligraphy.core import capture, decorators, read_configuration, ctx
 from cligraphy.core.log import setup_logging
 from cligraphy.core.parsers import AutoDiscoveryCommandMap, SmartCommandMapParser, ParserError, CustomDescriptionFormatter
+from cligraphy.core.reporting import ToolsPadReporter, NoopReporter
 from cligraphy.core.util import undecorate_func, pdb_wrapper, profiling_wrapper, call_chain
 
 from remember.memoize import memoize
@@ -62,7 +63,6 @@ def _warn_about_bad_path(env_root, path):
         return
 
 
-
 class _VersionAction(argparse.Action):
     """Shows last commit information"""
     def __call__(self, *args, **kwargs):
@@ -76,6 +76,7 @@ class _VersionAction(argparse.Action):
 
 
 class Cligraph(object):
+    reporter_cls = ToolsPadReporter
 
     def __init__(self, name, shortname, path):
         assert name
@@ -86,7 +87,22 @@ class Cligraph(object):
         self.tool_path = path
         self.conf, self.conf_layers = read_configuration(self)
         ctx.cligraph = self
+        self.reporter = None
 
+    def setup_reporter(self, args):
+        """
+        Setups up the reporter using ``self.reporter_cls`` class variable.
+        NOTE: A reporter must be configured for Cligraphy to operate properly.
+        If reporting is disabled via the config, a :class:`NoopReporter` is used instead.
+
+        :param args: The parsed arguments for the command
+        :type args: :class:`argparse.Namespace`
+        :return: None
+        """
+        if self.conf.report.enabled:
+            self.reporter = self.reporter_cls(self)
+        else:
+            self.reporter = NoopReporter()
 
     # FIXME(stf/oss): header names for octools
     def _setup_requests_audit_headers(self, command):
@@ -135,7 +151,6 @@ class Cligraph(object):
                     logging.debug('removing internal arg %s', kw)
                     delattr(args, kw)
             return func(args)
-
 
     def _run_command_process(self, args):
         """Command (child) process entry point. args contains the function to execute and all arguments."""
@@ -223,7 +238,13 @@ class Cligraph(object):
         """Get all the command maps defined in our configuration.
 
         If autodiscover is True (defaults to False), python commands will be autodiscovered (instead of simply being obtained
-        from a cached command map)."""
+        from a cached command map).
+
+        :param autodiscover: (default - `False`) Whether or not to autodiscover commands
+        :type autodiscover: bool
+        :return: A dictionary containing the command map
+        :rtype: dict
+        """
 
         result = []
         for module, options in self.conf.commands.items():
@@ -245,6 +266,41 @@ class Cligraph(object):
 
         return result
 
+    def before_command_start(self, args, recorder):
+        """Called after the args have been parsed but before the command starts
+        Reports command start using the configured reporter, sets the process
+        title to ``oc/parent/join script args``, and registers a fault handler
+
+        :param args: The parsed args the command was called with
+        :type args: :class:`argparse.Namespace`
+        :param recorder: The output recorder being used to capture command output
+        :type recorder: :class:`capture.Recorder`
+        :rtype: None
+        """
+        # reporting: we send command executions report to a web service;
+        #   unless the report.enabled conf key is false
+        self.reporter.report_command_start(sys.argv)
+
+        setproctitle('oc/parent/%s' % ' '.join(sys.argv[1:]))
+        faulthandler.register(signal.SIGUSR2, all_threads=True, chain=False)  # pylint:disable=no-member
+
+    def after_command_finish(self, args, recorder, status):
+        """Called after a command has finished running.
+        Reports command exit and output using the configured reporter.
+
+        :param args: The parsed args the command was called with
+        :type args: :class:`argparse.Namespace`
+        :param recorder: The output recorder being used to capture command output
+        :type recorder: :class:`capture.Recorder`
+        :param status: The exit status code of the command run
+        :type status: int
+        :rtype: None
+        """
+        # report execution details
+        self.reporter.report_command_exit(status)
+        self.reporter.report_command_output(recorder.output_as_string())  # TODO(stefan): also report total output size
+        self.reporter.stop()
+
     def main(self):
         """Main oc wrapper entry point."""
 
@@ -260,10 +316,7 @@ class Cligraph(object):
             logging.info('stdin or stdout is not a tty, disabling capture')
             args._capture = False
 
-        # reporting: we send command executions report to a web service; unless the report.enabled conf key is false
-        from cligraphy.core.reporting import NoopReporter, ToolsPadReporter
-        reporter = ToolsPadReporter(self) if (self.conf.report.enabled and args._reporting) else NoopReporter()
-        reporter.report_command_start(sys.argv)
+        self.setup_reporter(args)
 
         decs = decorators.get_tags(args._func)
         logging.debug("Decorator tags: %s", decs)
@@ -273,23 +326,21 @@ class Cligraph(object):
         else:
             recorder = capture.BufferingOutputRecorder(max_output_size=self.conf.report.max_output_size)
 
-        setproctitle('oc/parent/%s' % ' '.join(sys.argv[1:]))
-        faulthandler.register(signal.SIGUSR2, all_threads=True, chain=False)  # pylint:disable=no-member
+        self.before_command_start(args, recorder)
 
         if args._capture:
             # go ahead and run out command in a child process, recording all I/O
             logging.debug('Parent process %d ready to execute command process', os.getpid())
-            status = capture.spawn_and_record(recorder, self._run_command_process, reporter.start, args)
+            status = capture.spawn_and_record(recorder, self._run_command_process,
+                                              self.reporter.start, args)
             logging.debug('Command process exited with status %r', status)
         else:
-            reporter.start()
+            self.reporter.start()
             try:
                 self._run_command_process(args)
             except SystemExit as exc:
                 status = exc.code
 
-        # report execution details
-        reporter.report_command_exit(status)
-        reporter.report_command_output(recorder.output_as_string())  # TODO(stefan): also report total output size
-        reporter.stop()
+        self.after_command_finish(args, recorder, status)
+
         return status

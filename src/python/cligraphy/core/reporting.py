@@ -18,6 +18,7 @@ ReportingEvent = collections.namedtuple('ReportingEvent', 'name,args,kwargs')
 
 
 class Reporter(object):
+    reporting_event_cls = ReportingEvent
 
     def report_command_start(self, command_line):
         """Report command execution"""
@@ -76,7 +77,7 @@ class ThreadedReporter(Reporter, threading.Thread):
                         pass
 
     def _report(self, event_name, *args, **kwargs):
-        event = ReportingEvent(name=event_name, args=args, kwargs=kwargs)
+        event = self.reporting_event_cls(name=event_name, args=args, kwargs=kwargs)
         try:
             self.queue.put(event, block=False)
         except Full:
